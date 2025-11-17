@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Theme: Spatial / Obsidian Zen (Level 100 Minimalism) -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SkillActz Framework v2.0</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        obsidian: "#0a0a0a",
+                        charcoal: "#121212",
+                        glass: "rgba(255, 255, 255, 0.03)",
+                        glassHover: "rgba(255, 255, 255, 0.08)",
+                        border: "rgba(255, 255, 255, 0.1)",
+                        primary: "#38bdf8", // Sky blue
+                        accent: "#818cf8", // Indigo
+                    },
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    animation: {
+                        'blob': 'blob 10s infinite',
+                        'fade-up': 'fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+                    },
+                    keyframes: {
+                        blob: {
+                            '0%': { transform: 'translate(0px, 0px) scale(1)' },
+                            '33%': { transform: 'translate(30px, -50px) scale(1.1)' },
+                            '66%': { transform: 'translate(-20px, 20px) scale(0.9)' },
+                            '100%': { transform: 'translate(0px, 0px) scale(1)' },
+                        },
+                        fadeUp: {
+                            '0%': { opacity: '0', transform: 'translateY(20px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            background-color: #050505;
+            color: #e5e5e5;
+            overflow: hidden;
+        }
+
+        /* Glassmorphism Classes */
+        .glass-card {
+            background: var(--glass);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+        }
+
+        .nav-pill {
+            background: rgba(20, 20, 20, 0.6);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 9999px;
+        }
+
+        /* Custom Range Slider */
+        input[type=range] {
+            -webkit-appearance: none;
+            background: transparent;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 20px;
+            width: 20px;
+            border-radius: 50%;
+            background: #38bdf8;
+            cursor: pointer;
+            margin-top: -8px;
+            box-shadow: 0 0 10px rgba(56, 189, 248, 0.5);
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 4px;
+            cursor: pointer;
+            background: rgba(255,255,255,0.1);
+            border-radius: 2px;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+
+        .glow-text {
+            text-shadow: 0 0 20px rgba(56, 189, 248, 0.3);
+        }
+
+        /* Navigation Active State */
+        .nav-btn.active {
+            background: rgba(255, 255, 255, 0.1);
+            color: #38bdf8;
+            box-shadow: 0 0 15px rgba(56, 189, 248, 0.2);
+        }
+    </style>
+</head>
+<body class="h-screen flex flex-col relative">
+
+    <!-- Ambient Background Effects -->
+    <div class="fixed top-0 left-0 w-full h-full overflow-hidden -z-10 pointer-events-none">
+        <div class="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-purple-900 rounded-full mix-blend-screen filter blur-[120px] opacity-20 animate-blob"></div>
+        <div class="absolute top-[20%] right-[-10%] w-[600px] h-[600px] bg-blue-900 rounded-full mix-blend-screen filter blur-[120px] opacity-20 animate-blob animation-delay-2000"></div>
+        <div class="absolute bottom-[-20%] left-[20%] w-[600px] h-[600px] bg-cyan-900 rounded-full mix-blend-screen filter blur-[120px] opacity-20 animate-blob animation-delay-4000"></div>
+    </div>
+
+    <!-- Top Bar -->
+    <header class="px-8 py-6 flex justify-between items-center z-20">
+        <div class="flex items-center gap-3">
+            <div class="w-2 h-8 bg-gradient-to-b from-cyan-400 to-blue-600 rounded-full"></div>
+            <div>
+                <h1 class="text-lg font-bold tracking-tight text-white">SkillActz</h1>
+                <p class="text-xs text-gray-500 font-mono tracking-widest uppercase">Framework v2.0</p>
+            </div>
+        </div>
+        <div class="text-xs font-mono text-gray-500" id="clock">00:00</div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 overflow-y-auto relative z-10 px-4 pb-32">
+        <div class="max-w-5xl mx-auto mt-4">
+            
+            <!-- DASHBOARD VIEW -->
+            <div id="dashboard" class="view-section animate-fade-up">
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+                    <!-- Hero -->
+                    <div class="md:col-span-8 glass-card p-8 relative overflow-hidden group">
+                        <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity duration-500">
+                            <i class="fa-solid fa-bullseye text-9xl text-white"></i>
+                        </div>
+                        <span class="text-xs font-bold text-cyan-400 uppercase tracking-wider mb-2 block">Primary Directive</span>
+                        <h2 class="text-3xl md:text-4xl font-bold text-white mb-6 leading-tight glow-text">
+                            Bridge the gap between <br>
+                            <span class="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">Academia & Industry.</span>
+                        </h2>
+                        <p class="text-gray-400 text-lg leading-relaxed max-w-2xl">
+                            A scalable, structured internship system designed to enhance student employability through guided engagement.
+                        </p>
+                        <div class="mt-8 flex gap-4">
+                            <div class="px-4 py-2 rounded-full border border-white/10 bg-white/5 text-sm text-gray-300">Status: <span class="text-emerald-400">Active</span></div>
+                            <div class="px-4 py-2 rounded-full border border-white/10 bg-white/5 text-sm text-gray-300">Target: <span class="text-cyan-400">Employability</span></div>
+                        </div>
+                    </div>
+
+                    <!-- Founder Note -->
+                    <div class="md:col-span-4 glass-card p-8 flex flex-col justify-between bg-gradient-to-br from-white/5 to-transparent">
+                        <div>
+                            <i class="fa-solid fa-quote-left text-2xl text-purple-400 mb-4"></i>
+                            <p class="text-gray-300 italic leading-relaxed">
+                                "This model adapts across colleges. Flexibility in execution is encouraged, but the vision remains constant."
+                            </p>
+                        </div>
+                        <div class="mt-6 pt-6 border-t border-white/10 flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center text-gray-400 text-xs">DM</div>
+                            <div>
+                                <p class="text-sm font-bold text-white">Dani Mathew</p>
+                                <p class="text-xs text-gray-500">Framework Lead</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Scope Cards -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
+                    <button onclick="openModal('scope1')" class="glass-card p-6 hover:bg-white/5 transition-all text-left">
+                        <i class="fa-solid fa-bullhorn text-cyan-400 text-xl mb-3"></i>
+                        <h3 class="font-bold text-white">Awareness</h3>
+                        <p class="text-xs text-gray-500 mt-1">Launch Phase</p>
+                    </button>
+                    <button class="glass-card p-6 hover:bg-white/5 transition-all text-left">
+                        <i class="fa-solid fa-users text-purple-400 text-xl mb-3"></i>
+                        <h3 class="font-bold text-white">Onboarding</h3>
+                        <p class="text-xs text-gray-500 mt-1">Data Collection</p>
+                    </button>
+                    <button class="glass-card p-6 hover:bg-white/5 transition-all text-left">
+                        <i class="fa-solid fa-bolt text-yellow-400 text-xl mb-3"></i>
+                        <h3 class="font-bold text-white">Execution</h3>
+                        <p class="text-xs text-gray-500 mt-1">Workshops</p>
+                    </button>
+                    <button class="glass-card p-6 hover:bg-white/5 transition-all text-left">
+                        <i class="fa-solid fa-file-signature text-emerald-400 text-xl mb-3"></i>
+                        <h3 class="font-bold text-white">Reporting</h3>
+                        <p class="text-xs text-gray-500 mt-1">Metrics</p>
+                    </button>
+                </div>
+            </div>
+
+            <!-- JOURNEY VIEW -->
+            <div id="journey" class="view-section hidden animate-fade-up">
+                <div class="text-center mb-10">
+                    <h2 class="text-3xl font-bold text-white">Evolution Log</h2>
+                    <p class="text-gray-500">Tracing the development of the framework.</p>
+                </div>
+
+                <div class="glass-card p-8 md:p-12 max-w-3xl mx-auto">
+                    <div class="relative mb-12">
+                        <div class="flex justify-between text-xs font-mono text-gray-600 mb-4">
+                            <span>v1.0</span>
+                            <span>v2.0</span>
+                        </div>
+                        <input type="range" min="1" max="5" value="5" class="w-full" id="time-slider">
+                    </div>
+
+                    <div id="evo-display" class="text-center transition-all duration-300">
+                        <span class="inline-block px-3 py-1 rounded-full bg-cyan-500/10 text-cyan-400 text-xs font-bold mb-4 border border-cyan-500/20">STAGE 5: THE FRAMEWORK</span>
+                        <h3 class="text-3xl font-bold text-white mb-4">Scalable Documentation</h3>
+                        <p class="text-lg text-gray-400 leading-relaxed mb-8">
+                            We realized every college is different. We built a modular framework (v2.0) that allows interns to adapt tactics while keeping core goals intact.
+                        </p>
+                        <div class="grid grid-cols-2 gap-4 text-left">
+                            <div class="p-4 rounded-xl bg-red-500/5 border border-red-500/10">
+                                <div class="text-red-400 text-xs font-bold uppercase mb-1">Problem</div>
+                                <div class="text-gray-400 text-sm">Inconsistency across campuses.</div>
+                            </div>
+                            <div class="p-4 rounded-xl bg-emerald-500/5 border border-emerald-500/10">
+                                <div class="text-emerald-400 text-xs font-bold uppercase mb-1">Solution</div>
+                                <div class="text-gray-400 text-sm">Universal Guidelines.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ROLE VIEW -->
+            <div id="role" class="view-section hidden animate-fade-up">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="glass-card p-8">
+                        <h3 class="text-xl font-bold text-white mb-6">Intern Profile</h3>
+                        <div class="space-y-4">
+                            <div class="p-4 rounded-xl bg-white/5 hover:bg-white/10 transition-colors flex items-center gap-4">
+                                <div class="w-10 h-10 rounded-full bg-cyan-500/20 flex items-center justify-center text-cyan-400"><i class="fa-solid fa-bullhorn"></i></div>
+                                <div>
+                                    <h4 class="text-white font-bold">Communicator</h4>
+                                    <p class="text-sm text-gray-500">Faculty & student liaison.</p>
+                                </div>
+                            </div>
+                            <div class="p-4 rounded-xl bg-white/5 hover:bg-white/10 transition-colors flex items-center gap-4">
+                                <div class="w-10 h-10 rounded-full bg-purple-500/20 flex items-center justify-center text-purple-400"><i class="fa-solid fa-chess"></i></div>
+                                <div>
+                                    <h4 class="text-white font-bold">Organizer</h4>
+                                    <p class="text-sm text-gray-500">Event & workshop planner.</p>
+                                </div>
+                            </div>
+                            <div class="p-4 rounded-xl bg-white/5 hover:bg-white/10 transition-colors flex items-center gap-4">
+                                <div class="w-10 h-10 rounded-full bg-yellow-500/20 flex items-center justify-center text-yellow-400"><i class="fa-solid fa-chart-pie"></i></div>
+                                <div>
+                                    <h4 class="text-white font-bold">Analyst</h4>
+                                    <p class="text-sm text-gray-500">Data & feedback tracking.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-8 grid grid-cols-2 gap-4">
+                            <button onclick="toggleRules('do')" class="py-3 rounded-lg border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10 transition-all font-bold text-sm">PROTOCOLS (DO)</button>
+                            <button onclick="toggleRules('dont')" class="py-3 rounded-lg border border-red-500/30 text-red-400 hover:bg-red-500/10 transition-all font-bold text-sm">RESTRICTIONS</button>
+                        </div>
+                        <ul id="rules-list" class="mt-6 text-sm text-gray-400 space-y-2 pl-2"></ul>
+                    </div>
+
+                    <div class="glass-card p-8 flex flex-col items-center justify-center">
+                        <h3 class="text-xl font-bold text-white mb-6 self-start">Skill Matrix</h3>
+                        <div class="w-full max-w-sm aspect-square">
+                            <canvas id="skillsChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ROADMAP VIEW -->
+            <div id="roadmap" class="view-section hidden animate-fade-up">
+                <div class="glass-card p-8">
+                    <h3 class="text-2xl font-bold text-white mb-8">Execution Timeline</h3>
+                    
+                    <!-- Horizontal Steps -->
+                    <div class="relative">
+                        <div class="absolute top-1/2 left-0 w-full h-0.5 bg-gray-800 -z-10"></div>
+                        <div class="flex justify-between">
+                            <!-- Node 1 -->
+                            <div class="group cursor-pointer relative" onclick="showDetail(1)">
+                                <div class="w-12 h-12 rounded-full bg-gray-900 border-2 border-gray-700 group-hover:border-cyan-400 group-hover:shadow-[0_0_15px_rgba(34,211,238,0.5)] transition-all flex items-center justify-center z-10">
+                                    <span class="text-gray-500 group-hover:text-white font-bold">01</span>
+                                </div>
+                                <div class="absolute top-14 left-1/2 -translate-x-1/2 text-center w-32">
+                                    <p class="text-white font-bold text-sm">Orientation</p>
+                                    <p class="text-gray-600 text-xs">Wk 1-2</p>
+                                </div>
+                            </div>
+                            <!-- Node 2 -->
+                            <div class="group cursor-pointer relative" onclick="showDetail(2)">
+                                <div class="w-12 h-12 rounded-full bg-gray-900 border-2 border-gray-700 group-hover:border-purple-400 group-hover:shadow-[0_0_15px_rgba(192,132,252,0.5)] transition-all flex items-center justify-center z-10">
+                                    <span class="text-gray-500 group-hover:text-white font-bold">02</span>
+                                </div>
+                                <div class="absolute top-14 left-1/2 -translate-x-1/2 text-center w-32">
+                                    <p class="text-white font-bold text-sm">Onboarding</p>
+                                    <p class="text-gray-600 text-xs">Wk 3-4</p>
+                                </div>
+                            </div>
+                            <!-- Node 3 -->
+                            <div class="group cursor-pointer relative" onclick="showDetail(3)">
+                                <div class="w-12 h-12 rounded-full bg-gray-900 border-2 border-gray-700 group-hover:border-yellow-400 group-hover:shadow-[0_0_15px_rgba(250,204,21,0.5)] transition-all flex items-center justify-center z-10">
+                                    <span class="text-gray-500 group-hover:text-white font-bold">03</span>
+                                </div>
+                                <div class="absolute top-14 left-1/2 -translate-x-1/2 text-center w-32">
+                                    <p class="text-white font-bold text-sm">Engagement</p>
+                                    <p class="text-gray-600 text-xs">Month 2</p>
+                                </div>
+                            </div>
+                            <!-- Node 4 -->
+                            <div class="group cursor-pointer relative" onclick="showDetail(4)">
+                                <div class="w-12 h-12 rounded-full bg-gray-900 border-2 border-gray-700 group-hover:border-pink-400 group-hover:shadow-[0_0_15px_rgba(244,114,182,0.5)] transition-all flex items-center justify-center z-10">
+                                    <span class="text-gray-500 group-hover:text-white font-bold">04</span>
+                                </div>
+                                <div class="absolute top-14 left-1/2 -translate-x-1/2 text-center w-32">
+                                    <p class="text-white font-bold text-sm">Assessment</p>
+                                    <p class="text-gray-600 text-xs">Month 3</p>
+                                </div>
+                            </div>
+                             <!-- Node 5 -->
+                             <div class="group cursor-pointer relative" onclick="showDetail(5)">
+                                <div class="w-12 h-12 rounded-full bg-gray-900 border-2 border-gray-700 group-hover:border-emerald-400 group-hover:shadow-[0_0_15px_rgba(52,211,153,0.5)] transition-all flex items-center justify-center z-10">
+                                    <span class="text-gray-500 group-hover:text-white font-bold">05</span>
+                                </div>
+                                <div class="absolute top-14 left-1/2 -translate-x-1/2 text-center w-32">
+                                    <p class="text-white font-bold text-sm">Report</p>
+                                    <p class="text-gray-600 text-xs">Final</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Dynamic Detail Box -->
+                    <div class="mt-24 p-6 rounded-xl border border-white/10 bg-white/5 transition-all" id="roadmap-detail">
+                        <h4 class="text-cyan-400 font-bold uppercase tracking-widest mb-2 text-sm">Phase Detail</h4>
+                        <p class="text-gray-300 text-lg" id="roadmap-text">Select a phase node above to view operational details.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI TERMINAL VIEW -->
+            <div id="ai-terminal" class="view-section hidden animate-fade-up h-[500px]">
+                <div class="glass-card h-full flex flex-col overflow-hidden">
+                    <div class="px-6 py-4 border-b border-white/10 flex justify-between items-center bg-white/5">
+                        <div class="flex items-center gap-2">
+                            <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                            <span class="text-sm font-mono text-gray-400">GEMINI_CORE_V2 // ONLINE</span>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="switchAI('drafter')" class="text-xs px-3 py-1 rounded bg-white/10 hover:bg-white/20 text-white transition">Drafter</button>
+                            <button onclick="switchAI('simulator')" class="text-xs px-3 py-1 rounded hover:bg-white/10 text-gray-400 hover:text-white transition">Simulator</button>
+                        </div>
+                    </div>
+
+                    <div class="flex-1 p-6 relative font-mono">
+                        <!-- Drafter -->
+                        <div id="tool-drafter" class="h-full flex flex-col">
+                            <div class="flex gap-4 mb-4">
+                                <select id="draft-recipient" class="bg-transparent border-b border-gray-700 text-white pb-2 focus:border-cyan-400 focus:outline-none w-1/2">
+                                    <option class="bg-gray-900" value="HOD">Target: HOD</option>
+                                    <option class="bg-gray-900" value="Student">Target: Student</option>
+                                </select>
+                                <select id="draft-purpose" class="bg-transparent border-b border-gray-700 text-white pb-2 focus:border-cyan-400 focus:outline-none w-1/2">
+                                    <option class="bg-gray-900" value="Introduction">Type: Intro</option>
+                                    <option class="bg-gray-900" value="Workshop Invite">Type: Invite</option>
+                                </select>
+                            </div>
+                            <input type="text" id="draft-details" placeholder=">> Enter context parameters..." class="w-full bg-transparent border-b border-gray-700 text-cyan-400 pb-2 mb-6 focus:border-cyan-400 focus:outline-none">
+                            
+                            <button id="btn-gen-draft" class="self-start px-6 py-2 bg-cyan-600/20 border border-cyan-500/50 text-cyan-400 rounded hover:bg-cyan-600/40 transition mb-4">INITIALIZE GENERATION</button>
+                            
+                            <div class="flex-1 bg-black/30 rounded p-4 overflow-y-auto border border-white/5 text-sm text-gray-300 relative">
+                                <div id="draft-result" class="whitespace-pre-wrap">Awaiting input stream...</div>
+                                <button onclick="speakText()" class="absolute bottom-2 right-2 text-gray-500 hover:text-white"><i class="fa-solid fa-volume-high"></i></button>
+                            </div>
+                        </div>
+
+                        <!-- Simulator -->
+                        <div id="tool-simulator" class="hidden h-full flex flex-col">
+                            <div id="chat-history" class="flex-1 bg-black/30 rounded p-4 overflow-y-auto border border-white/5 text-sm space-y-4 mb-4">
+                                <div class="text-red-400">sys_admin@hod: "I'm busy. Be concise."</div>
+                            </div>
+                            <form id="chat-form" class="flex gap-2 border-t border-gray-700 pt-4">
+                                <span class="text-green-500">></span>
+                                <input type="text" id="chat-input" class="flex-1 bg-transparent text-white focus:outline-none" placeholder="Enter command..." autocomplete="off">
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Floating Dock Navigation -->
+    <div class="fixed bottom-8 left-1/2 -translate-x-1/2 z-50">
+        <nav class="nav-pill flex items-center gap-2 p-2 px-4 shadow-2xl">
+            <button onclick="router('dashboard')" class="nav-btn w-10 h-10 rounded-full flex items-center justify-center text-gray-400 hover:text-white transition-all active" data-page="dashboard" title="Home">
+                <i class="fa-solid fa-layer-group"></i>
+            </button>
+            <button onclick="router('role')" class="nav-btn w-10 h-10 rounded-full flex items-center justify-center text-gray-400 hover:text-white transition-all" data-page="role" title="Profile">
+                <i class="fa-solid fa-id-badge"></i>
+            </button>
+            <button onclick="router('journey')" class="nav-btn w-10 h-10 rounded-full flex items-center justify-center text-gray-400 hover:text-white transition-all" data-page="journey" title="History">
+                <i class="fa-solid fa-clock-rotate-left"></i>
+            </button>
+            <button onclick="router('roadmap')" class="nav-btn w-10 h-10 rounded-full flex items-center justify-center text-gray-400 hover:text-white transition-all" data-page="roadmap" title="Map">
+                <i class="fa-solid fa-map"></i>
+            </button>
+            <div class="w-px h-6 bg-white/20 mx-1"></div>
+            <button onclick="router('ai-terminal')" class="nav-btn w-10 h-10 rounded-full flex items-center justify-center text-gray-400 hover:text-cyan-400 transition-all" data-page="ai-terminal" title="AI Tools">
+                <i class="fa-solid fa-wand-magic-sparkles"></i>
+            </button>
+        </nav>
+    </div>
+
+    <!-- Logic -->
+    <script>
+        const apiKey ="AIzaSyDL2XlwNsKMlTygBklCK3Gf9BsF1SbEmP0"; // API Key Here
+
+        // Router
+        function router(pageId) {
+            document.querySelectorAll('.view-section').forEach(el => {
+                el.classList.add('hidden');
+                el.classList.remove('animate-fade-up'); // reset animation
+            });
+            const target = document.getElementById(pageId);
+            target.classList.remove('hidden');
+            void target.offsetWidth; // trigger reflow
+            target.classList.add('animate-fade-up');
+            
+            document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+            const btn = document.querySelector(`.nav-btn[data-page="${pageId}"]`);
+            if(btn) btn.classList.add('active');
+        }
+
+        // Evolution Slider
+        const stageData = [
+            {},
+            { title: "Mass Attack", desc: "Broad targeting failed due to low seriousness." },
+            { title: "Psychology Pivot", desc: "Added exclusivity to increase value." },
+            { title: "Senior Focus", desc: "Targeted Final Years for urgency." },
+            { title: "Active Ops", desc: "Added Workshops & Competitions." },
+            { title: "The Framework", desc: "Universal documentation for scalability." }
+        ];
+
+        document.getElementById('time-slider').addEventListener('input', (e) => {
+            const val = e.target.value;
+            const data = stageData[val];
+            document.getElementById('evo-display').innerHTML = `
+                <span class="inline-block px-3 py-1 rounded-full bg-cyan-500/10 text-cyan-400 text-xs font-bold mb-4 border border-cyan-500/20">STAGE ${val}: ${data.title.toUpperCase()}</span>
+                <h3 class="text-3xl font-bold text-white mb-4">${data.title}</h3>
+                <p class="text-lg text-gray-400 leading-relaxed mb-8">${data.desc}</p>
+            `;
+        });
+
+        // Rules Toggle
+        function toggleRules(type) {
+            const list = document.getElementById('rules-list');
+            list.innerHTML = '';
+            const items = type === 'do' ? 
+                ['Communicate clearly', 'Use official links', 'Be professional', 'Track everything'] : 
+                ['No spamming', 'No fake promises', 'No force', 'No unapproved posters'];
+            
+            items.forEach(item => {
+                const li = document.createElement('li');
+                li.className = type === 'do' ? 'text-emerald-400' : 'text-red-400';
+                li.innerHTML = `• ${item}`;
+                list.appendChild(li);
+            });
+        }
+        toggleRules('do');
+
+        // Roadmap Details
+        const levelData = {
+            1: "Weeks 1-2: Orientation. Meet HOD. Get Approval. Establish credibility.",
+            2: "Weeks 3-4: Onboarding. Select Final Years. Create Groups. Collect Data.",
+            3: "Month 2: Engagement. Resume Workshop. Share Learning Modules.",
+            4: "Month 3: Assessment. Competitions. MCQ Tests. Awards.",
+            5: "Final: Reporting. Feedback Collection. Certification."
+        };
+        function showDetail(id) {
+            document.getElementById('roadmap-text').innerText = levelData[id];
+        }
+
+        // Chart
+        const ctx = document.getElementById('skillsChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'radar',
+            data: {
+                labels: ['Comm', 'Org', 'Lead', 'Analytic', 'Creative', 'Digital'],
+                datasets: [{
+                    label: 'Profile',
+                    data: [9, 8, 7, 6, 8, 9],
+                    backgroundColor: 'rgba(56, 189, 248, 0.2)',
+                    borderColor: '#38bdf8',
+                    pointBackgroundColor: '#fff',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                scales: {
+                    r: {
+                        angleLines: { color: 'rgba(255,255,255,0.1)' },
+                        grid: { color: 'rgba(255,255,255,0.1)' },
+                        pointLabels: { color: '#94a3b8', font: {size: 10} },
+                        ticks: { display: false, max: 10 }
+                    }
+                },
+                plugins: { legend: { display: false } }
+            }
+        });
+
+        // AI Logic
+        function switchAI(tool) {
+            document.getElementById('tool-drafter').classList.add('hidden');
+            document.getElementById('tool-simulator').classList.add('hidden');
+            document.getElementById(`tool-${tool}`).classList.remove('hidden');
+        }
+
+        async function callGemini(prompt) {
+            const btn = document.getElementById('btn-gen-draft');
+            const originalText = btn.innerText;
+            btn.innerText = "COMPUTING...";
+            
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+                });
+                const data = await response.json();
+                btn.innerText = originalText;
+                return data.candidates[0].content.parts[0].text;
+            } catch (e) {
+                btn.innerText = "ERR_CONNECTION";
+                return "Error connecting to AI Core.";
+            }
+        }
+
+        document.getElementById('btn-gen-draft').addEventListener('click', async () => {
+            const r = document.getElementById('draft-recipient').value;
+            const p = document.getElementById('draft-purpose').value;
+            const d = document.getElementById('draft-details').value;
+            const prompt = `Write a short, sleek professional message. Recipient: ${r}. Purpose: ${p}. Details: ${d}. No placeholders.`;
+            
+            const text = await callGemini(prompt);
+            document.getElementById('draft-result').innerText = text;
+        });
+
+        const chatHistory = document.getElementById('chat-history');
+        document.getElementById('chat-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const input = document.getElementById('chat-input');
+            const msg = input.value;
+            if(!msg) return;
+
+            chatHistory.innerHTML += `<div class="text-emerald-400 text-right">> USER: "${msg}"</div>`;
+            input.value = "";
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+
+            const prompt = `Roleplay: You are a strict HOD. Student says: "${msg}". Reply efficiently.`;
+            const reply = await callGemini(prompt);
+            chatHistory.innerHTML += `<div class="text-red-400">> HOD: "${reply}"</div>`;
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+        });
+
+        async function speakText() { alert("Audio Module: Initializing..."); }
+
+        // Clock
+        setInterval(() => {
+            document.getElementById('clock').innerText = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        }, 1000);
+
+        // Init
+        router('dashboard');
+    </script>
+</body>
+</html>F
